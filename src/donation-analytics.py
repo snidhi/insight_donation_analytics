@@ -17,8 +17,10 @@ def getValues(line):
                 
         recipient = all_values[0]
         donor_name = all_values[7]
-        zip_code = int(all_values[10][:5])
-        year = int(all_values[13][-4:])
+        zip_code = all_values[10][:5]
+        year = all_values[13][-4:]
+	int(zip_code)
+	int(year)
         amt = int(all_values[14])
         other_id = all_values[15]    
         
@@ -35,40 +37,49 @@ if __name__ == "__main__":
     try:
     	input_file = open(sys.argv[1])
     except:
-	    print "Input file opening error...Terminating!"
+	    print "Unable to open input file. Terminating!"
 	    sys.exit()
     
     try:
     	percentile_file = open(sys.argv[2])
         p = int(percentile_file.read())
     except:
-        print "Percentile file reading error..Terminating!"
+        print "Unable to open percentile file. Terminating!"
         sys.exit()
+    finally:
+	    if(percentile_file is not None):
+		percentile_file.close()                    
 
     try: 
     	output_file = open(sys.argv[3],"w")
     except:
-	print "Output file opening error..Terminating!"
+	print "Unable to open outpur file. Terminating!"
 	sys.exit()
 
-    data = input_file.readlines()    
-    repeatedDonor = {} # repeat donor
-    recipientRecord = {} # repeated transaction
-    skipped = 0
-
-    for line in data:
+    #key = string : name + | + zip 
+    #value = string : recipient id + zip + year + amt + True/False (seen and not seen donor)
+    repeatedDonor = {}
+    #key = recipient id + zip + year, 
+    #value = heap of contributions, sum of contributions, repetetions
+    recipientRecord = {} 
+    valid_lines = 0	
+    skipped = 0 # No. of malformed line that are skipped
+    line =  input_file.readline()
+    while (line): 
                 
         vals = getValues(line)
+	line = input_file.readline()
 
         if(vals):
             recipient, donor_name, zip_code, year, amt = vals
+	    valid_lines += 1
         else:
             #print "Skipping due to malform input or other_id is not empty", line
-	    #skipped += 1 
+	    skipped += 1 
             continue
                     
-        name_and_zip = donor_name+"|"+str(zip_code)
-        recipient_zip_year = recipient+"|"+ str(zip_code)+"|"+str(year)
+        name_and_zip = donor_name + "|" + zip_code
+        recipient_zip_year = recipient + "|" + zip_code + "|" + year
         donor_record = repeatedDonor.get(name_and_zip)    
         if (donor_record != None): #Its a repeated donor
                                                     
@@ -124,5 +135,8 @@ if __name__ == "__main__":
             repeatedDonor[name_and_zip] = recipient +"|"+ str(zip_code) +"|"+ str(year) +"|"+ str(amt) +"|"+"False" #has not been seen
                 
 
-    #print skipped, "lines are skipped due to malformed data or other_id is not empty"
+    print skipped, "lines are skipped due to malformed data or other_id is not empty"
+    print valid_lines, "valid lines that are processed"
 output_file.close()                    
+input_file.close()                    
+
