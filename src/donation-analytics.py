@@ -1,9 +1,10 @@
+# See READme for more details
 import sys
 import heapq
 
+
 def percentile(arr,p):
     n  = len(arr)
-    #arr = sorted(arr)
     if (p *n)%100 == 0:
         return arr[int((float(p)/100)*n) -1]
     else:    
@@ -31,22 +32,30 @@ def getValues(line):
 
 if __name__ == "__main__":
 
-    filename = sys.argv[1]
-    f = open(filename)
-    data = f.readlines()    
-    repeatedDonor = {} # repeat donor
-    recipientRecord = {} # repeated transaction
-    
-    f2 = open(sys.argv[2])
+    try:
+    	input_file = open(sys.argv[1])
+    except:
+	    print "Input file opening error...Terminating!"
+	    sys.exit()
     
     try:
-        p = int(f2.read())
+    	percentile_file = open(sys.argv[2])
+        p = int(percentile_file.read())
     except:
-        print "percentile reading error..terminating"
+        print "Percentile file reading error..Terminating!"
         sys.exit()
-    
-    output_file = open(sys.argv[3],"w")
-    
+
+    try: 
+    	output_file = open(sys.argv[3],"w")
+    except:
+	print "Output file opening error..Terminating!"
+	sys.exit()
+
+    data = input_file.readlines()    
+    repeatedDonor = {} # repeat donor
+    recipientRecord = {} # repeated transaction
+    skipped = 0
+
     for line in data:
                 
         vals = getValues(line)
@@ -54,16 +63,16 @@ if __name__ == "__main__":
         if(vals):
             recipient, donor_name, zip_code, year, amt = vals
         else:
-            print "Skipping", line
+            #print "Skipping due to malform input or other_id is not empty", line
+	    #skipped += 1 
             continue
                     
         name_and_zip = donor_name+"|"+str(zip_code)
-            
-        if name_and_zip in repeatedDonor: #Its a repeated donor
+        recipient_zip_year = recipient+"|"+ str(zip_code)+"|"+str(year)
+        donor_record = repeatedDonor.get(name_and_zip)    
+        if (donor_record != None): #Its a repeated donor
                                                     
              # add the current record for the repeated donor
-                
-            recipient_zip_year = recipient+"|"+ str(zip_code)+"|"+str(year)
                 
             if recipient_zip_year in recipientRecord:
 
@@ -72,15 +81,17 @@ if __name__ == "__main__":
                 heapq.heappush(heap, amt)
                 cnt += 1
                 sum_amt += amt
+
                 recipientRecord[recipient_zip_year] = [heap,sum_amt,cnt ]
+
             else:
                 heap = [amt]
                 cnt = 1
                 sum_amt = amt
                 recipientRecord[recipient_zip_year] = [heap,sum_amt,cnt ]                                                               
             
-            recipient1 , zip_code1, year1 , amt1, seen = repeatedDonor[name_and_zip].split("|")
 	    # find the first record of this donor
+            recipient1 , zip_code1, year1 , amt1, seen = donor_record.split("|")
 
             if seen == "False": # first record has not been seen, add the first record
                                     
@@ -113,4 +124,5 @@ if __name__ == "__main__":
             repeatedDonor[name_and_zip] = recipient +"|"+ str(zip_code) +"|"+ str(year) +"|"+ str(amt) +"|"+"False" #has not been seen
                 
 
+    #print skipped, "lines are skipped due to malformed data or other_id is not empty"
 output_file.close()                    
