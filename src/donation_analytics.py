@@ -34,6 +34,9 @@ def getValues(line):
 
 if __name__ == "__main__":
 
+    from datetime import datetime
+    startTime = datetime.now()
+
     try:
     	input_file = open(sys.argv[1])
     except:
@@ -53,10 +56,10 @@ if __name__ == "__main__":
     try: 
     	output_file = open(sys.argv[3],"w")
     except:
-	print "Unable to open outpur file. Terminating!"
+	print "Unable to open output file. Terminating!"
 	sys.exit()
 
-    #key = string : donor + | + zip 
+    #key = string : donor name + | + zip 
     #value = string : First contribution of this donor. Of that contribution: recipient id + zip + year + amt + True/False (processed or not)
     repeatedDonor = {}
     
@@ -65,7 +68,7 @@ if __name__ == "__main__":
     recipientRecord = {} 
     
     valid_lines = 0	
-    skipped = 0 # No. of malformed line that are skipped
+    skipped_lines = 0 
     
     line =  input_file.readline()
     while (line): 
@@ -76,7 +79,7 @@ if __name__ == "__main__":
             recipient, donor_name, zip_code, year, amt = vals
 	    valid_lines += 1
         else:
-	    skipped += 1 
+	    skipped_lines += 1 
             continue
                     
         name_and_zip = donor_name + "|" + zip_code # key for donor map
@@ -89,13 +92,13 @@ if __name__ == "__main__":
             
 	    recipient_record = recipientRecord.get(recipient_zip_year)    
             if recipient_record != None:
-                # Current receipient has recevied donations from this zip and year
+                # Current recipient has recevied donations from this zip and year
                 heap, sum_amt, cnt = recipient_record
                 heapq.heappush(heap, amt)
                 cnt += 1
                 sum_amt += amt
             else: 
-		# Current receipient is receiving donations for first time from this zip and year
+		# Current recipient is reciving donations for first time from this zip and year
                 heap = [amt]
                 cnt = 1
                 sum_amt = amt
@@ -105,29 +108,29 @@ if __name__ == "__main__":
             recipient1 , zip_code1, year1 , amt1, seen = donor_record.split("|")
             if seen == "False": 
 		 # first record of current donor has not been processed 
-                 recipient_zip_year1 = recipient1+"|"+zip_code1+"|"+year1 
+                 recipient_zip_year1 = recipient1 + "|" + zip_code1 + "|" + year1 
 		 if (recipient_zip_year1 == recipient_zip_year):
-			 # receipient, zip and year corresponding to first record of current repeat donor
+			 # recipient, zip and year corresponding to first record of current repeat donor
 			 # is same as that of current line we are processing, so we need to account this for current line too.
 			 heapq.heappush(heap, int(amt1))
 			 cnt += 1
 			 sum_amt += int(amt1)
 		 else:	 
-		 	# first record of current repeat donor is for different receipient, zip and year
+		 	# first record of current repeat donor is for different recipient, zip and year
 			recipient_previous_record = recipientRecord.get(recipient_zip_year1)                
                  	if recipient_previous_record != None:   
-				# this receipient, zip and year already exists, so add to its record
+				# this recipient, zip and year already exists, so add to its record
                      		heap1, sum_amt1, cnt1 = recipient_previous_record
                      		heapq.heappush(heap1, int(amt1))
                      		cnt1 += 1
                      		sum_amt1 += int(amt1)
                  	else:
-				# this receipient, zip and year is seen for first time
+				# this recipient, zip and year is seen for first time
                      		heap1 = [int(amt1)]
                      		cnt1 = 1
                      		sum_amt1 = int(amt1)
 
-                        recipientRecord[recipient_zip_year1] = [heap1,sum_amt1,cnt1 ] #update receipient map for this donor's first entry
+                        recipientRecord[recipient_zip_year1] = [heap1,sum_amt1,cnt1 ] #update recipient map for this donor's first entry
 		 repeatedDonor[name_and_zip] = recipient_zip_year1+"|"+amt1+"|"+"True" #change the value to be seen now that its prcoessed 
                 
             recipientRecord[recipient_zip_year] = [heap,sum_amt,cnt]                                                               
@@ -139,9 +142,9 @@ if __name__ == "__main__":
             # we are seeing this donor for first time   
             repeatedDonor[name_and_zip] = recipient +"|"+ str(zip_code) +"|"+ str(year) +"|"+ str(amt) +"|"+"False" 
                 
-
-    print skipped, "lines are skipped due to malformed data or other_id is not empty"
+    print "Finished in ",datetime.now() - startTime
+    print skipped_lines, "lines are skipped due to malformed data or other_id is not empty"
     print valid_lines, "valid lines that are processed"
-output_file.close()                    
-input_file.close()                    
+    output_file.close()                    
+    input_file.close()                    
 
