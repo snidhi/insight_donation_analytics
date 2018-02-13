@@ -45,5 +45,5 @@ class TestUM(unittest.TestCase):
 			self.assertEqual(percentile(heap,75,n),15)
 			self.assertEqual(percentile(heap,100,n),20)
 
-	    #def testCaseValues(self):
+
 				
