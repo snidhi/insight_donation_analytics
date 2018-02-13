@@ -1,7 +1,7 @@
 # See READme for more details
 import sys
 import heapq
-
+from datetime import datetime
 
 def percentile(heap,p,size):
     # percentile is normalized rank in sorted array (heap)
@@ -36,7 +36,6 @@ def getValues(line):
         
 if __name__ == "__main__":
 
-    from datetime import datetime
     startTime = datetime.now()
 
     try:
@@ -61,12 +60,12 @@ if __name__ == "__main__":
 	print "Unable to open output file. Terminating!"
 	sys.exit()
 
-    #key = string : donor name + | + zip 
-    #value = string : First contribution of this donor. Of that contribution: recipient id + zip + year + amt + True/False (processed or not)
+    #key = (donor name , zip) 
+    #value = First contribution of this donor. Of that contribution: (recipient id, zip ,year ,amt ,True/False (processed or not))
     #maximum size of the hash map can go to as big as the number of unique donors
     repeatedDonor = {}
     
-    #key = recipient id + zip + year 
+    #key = (recipient_id, zip, year) 
     #value = heap of contributions, sum of contributions, # of contributions
     #maximum number of keys can go to as high as the number of lines in the input. 
     recipientRecord = {} 
@@ -86,10 +85,10 @@ if __name__ == "__main__":
 	    skipped_lines += 1 
             continue
                     
-        name_and_zip = donor_name + "|" + zip_code # key for donor map
-        recipient_zip_year = recipient + "|" + zip_code + "|" + year # key for recipient map
-
-        donor_record = repeatedDonor.get(name_and_zip) 
+        name_and_zip = (donor_name, zip_code) 
+        recipient_zip_year = (recipient, zip_code, year) 
+ 
+	donor_record = repeatedDonor.get(name_and_zip) 
 
         if (donor_record != None):
              #Its a repeat donor                                      
@@ -109,43 +108,43 @@ if __name__ == "__main__":
 
             
 	    # We may not have processed first record of this repeat donor, so lets do that now.
-            recipient1 , zip_code1, year1 , amt1, seen = donor_record.split("|")
-            if seen == "False": 
-                 recipient_zip_year1 = recipient1 + "|" + zip_code1 + "|" + year1 
+            recipient1 , zip_code1, year1 , amt1, seen = donor_record
+            if seen == False: 
+                 recipient_zip_year1 = (recipient1, zip_code1,  year1) 
 		 if (recipient_zip_year1 == recipient_zip_year):
 			 # recipient, zip and year corresponding to first record of current repeat donor
 			 # is same as that of current line we are processing, so we need to account this for current line too.
-			 heapq.heappush(heap, int(amt1))
+			 heapq.heappush(heap, amt1)
 			 cnt += 1
-			 sum_amt += int(amt1)
+			 sum_amt += amt1
 		 else:	 
 		 	# first record of current repeat donor is for different recipient, zip and year
 			recipient_previous_record = recipientRecord.get(recipient_zip_year1)                
                  	if recipient_previous_record != None:   
 				# this recipient, zip and year already exists, so add to its record
                      		heap1, sum_amt1, cnt1 = recipient_previous_record
-                     		heapq.heappush(heap1, int(amt1))
+                     		heapq.heappush(heap1, amt1)
                      		cnt1 += 1
-                     		sum_amt1 += int(amt1)
+                     		sum_amt1 += amt1
                  	else:
 				# this recipient, zip and year is seen for first time
-                     		heap1 = [int(amt1)]
+                     		heap1 = [amt1]
                      		cnt1 = 1
-                     		sum_amt1 = int(amt1)
+                     		sum_amt1 = amt1
 
                         recipientRecord[recipient_zip_year1] = [heap1,sum_amt1,cnt1 ] #update recipient map for this donor's first entry
-		 repeatedDonor[name_and_zip] = recipient_zip_year1+"|"+amt1+"|"+"True" #change the value to be seen now that its prcoessed 
+		 repeatedDonor[name_and_zip] = (recipient1, zip_code1, year1, amt1, True) #change the value to be seen now that its prcoessed 
         
 		 # first record of current donor has not been processed 
 
             recipientRecord[recipient_zip_year] = [heap,sum_amt,cnt]                                                               
             percentile_p = str(percentile(heap,p,cnt))
-            output = recipient_zip_year+"|"+percentile_p+"|"+str(sum_amt)+"|"+str(cnt)+"\n"
+            output = recipient + "|" + zip_code +"|" + year+"|"+percentile_p+"|"+str(sum_amt)+"|"+str(cnt)+"\n"
             output_file.write(output)
                 
         else:
             # we are seeing this donor for first time   
-            repeatedDonor[name_and_zip] = recipient +"|"+ str(zip_code) +"|"+ str(year) +"|"+ str(amt) +"|"+"False" 
+            repeatedDonor[name_and_zip] = (recipient , zip_code , year, amt ,False) 
                 
     print "Finished in ",datetime.now() - startTime
     print skipped_lines, "lines are skipped due to malformed data or other_id is not empty"
