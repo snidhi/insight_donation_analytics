@@ -30,7 +30,6 @@ def getValues(line):
             return [recipient, donor_name, zip_code, year, amt]
         else:
             return None
-        
     except:
         return None
         
@@ -100,11 +99,13 @@ if __name__ == "__main__":
     
     valid_lines = 0	
     skipped_lines = 0 
-    
+
     line =  input_file.readline()
     while (line): 
         vals = getValues(line)
 	line = input_file.readline()
+        if (valid_lines + skipped_lines) % 100000 == 0:
+		print "Processed lines: ", valid_lines + skipped_lines
 
         if(vals):
             recipient, donor_name, zip_code, year, amt = vals
@@ -132,7 +133,6 @@ if __name__ == "__main__":
                 heap = [amt]
                 cnt = 1
                 sum_amt = amt
-
             
 	    recipient1 , zip_code1, year1 , amt1, seen = donor_record
             if seen == False: 
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     
     print "Finished in ",datetime.now() - startTime
     print skipped_lines, "lines are skipped due to malformed data or other_id is not empty"
-    print valid_lines, "valid lines that are processed"
+    print valid_lines, "valid lines" 
     output_file.close()                    
     input_file.close()                    
 
