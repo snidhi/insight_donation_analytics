@@ -1,3 +1,5 @@
+Find the details of logic and implementation in src/READme.md
+
 # Table of Contents
 1. [Introduction](README.md#introduction)
 2. [Challenge summary](README.md#challenge-summary)
