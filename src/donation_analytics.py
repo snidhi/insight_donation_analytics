@@ -34,6 +34,34 @@ def getValues(line):
     except:
         return None
         
+def processFirstRecord(donor_record, heap, recipient_zip_year, recipientRecord, cnt, sum_amt):
+
+	recipient1 , zip_code1, year1 , amt1, seen = donor_record
+	recipient_zip_year1 = (recipient1, zip_code1,  year1) 
+	if (recipient_zip_year1 == recipient_zip_year):
+		# recipient, zip and year corresponding to first record of current repeat donor
+		# is same as that of current line we are processing, so we need to account this for current line too.
+		heapq.heappush(heap, amt1)
+		cnt += 1
+		sum_amt += amt1
+	else:	 
+		# first record of current repeat donor is for different recipient, zip and year
+		recipient_previous_record = recipientRecord.get(recipient_zip_year1)                
+                if recipient_previous_record != None:   
+			# this recipient, zip and year already exists, so add to its record
+                	heap1, sum_amt1, cnt1 = recipient_previous_record
+                     	heapq.heappush(heap1, amt1)
+                     	cnt1 += 1
+                     	sum_amt1 += amt1
+                else:
+			# this recipient, zip and year is seen for first time
+                     	heap1 = [amt1]
+                     	cnt1 = 1
+                     	sum_amt1 = amt1
+
+        	recipientRecord[recipient_zip_year1] = [heap1,sum_amt1,cnt1] #update recipient map for this donor's first entry
+	return cnt, sum_amt	
+
 if __name__ == "__main__":
 
     startTime = datetime.now()
@@ -84,7 +112,6 @@ if __name__ == "__main__":
         else:
 	    skipped_lines += 1 
             continue
-                    
         name_and_zip = (donor_name, zip_code) 
         recipient_zip_year = (recipient, zip_code, year) 
  
@@ -107,37 +134,14 @@ if __name__ == "__main__":
                 sum_amt = amt
 
             
-	    # We may not have processed first record of this repeat donor, so lets do that now.
-            recipient1 , zip_code1, year1 , amt1, seen = donor_record
+	    recipient1 , zip_code1, year1 , amt1, seen = donor_record
             if seen == False: 
-                 recipient_zip_year1 = (recipient1, zip_code1,  year1) 
-		 if (recipient_zip_year1 == recipient_zip_year):
-			 # recipient, zip and year corresponding to first record of current repeat donor
-			 # is same as that of current line we are processing, so we need to account this for current line too.
-			 heapq.heappush(heap, amt1)
-			 cnt += 1
-			 sum_amt += amt1
-		 else:	 
-		 	# first record of current repeat donor is for different recipient, zip and year
-			recipient_previous_record = recipientRecord.get(recipient_zip_year1)                
-                 	if recipient_previous_record != None:   
-				# this recipient, zip and year already exists, so add to its record
-                     		heap1, sum_amt1, cnt1 = recipient_previous_record
-                     		heapq.heappush(heap1, amt1)
-                     		cnt1 += 1
-                     		sum_amt1 += amt1
-                 	else:
-				# this recipient, zip and year is seen for first time
-                     		heap1 = [amt1]
-                     		cnt1 = 1
-                     		sum_amt1 = amt1
-
-                        recipientRecord[recipient_zip_year1] = [heap1,sum_amt1,cnt1 ] #update recipient map for this donor's first entry
+	    	# We have not processed first record of this repeat donor, so lets do that now.
+                 cnt, sum_amt = processFirstRecord(donor_record, heap, recipient_zip_year, recipientRecord, cnt, sum_amt)
 		 repeatedDonor[name_and_zip] = (recipient1, zip_code1, year1, amt1, True) #change the value to be seen now that its prcoessed 
-        
-		 # first record of current donor has not been processed 
-
+             
             recipientRecord[recipient_zip_year] = [heap,sum_amt,cnt]                                                               
+
             percentile_p = str(int(round(percentile(heap,p,cnt))))
             output = recipient + "|" + zip_code +"|" + year + "|" + percentile_p + "|" + str(int(round(sum_amt)))+"|"+str(cnt)+"\n"
             output_file.write(output)
@@ -145,7 +149,7 @@ if __name__ == "__main__":
         else:
             # we are seeing this donor for first time   
             repeatedDonor[name_and_zip] = (recipient , zip_code , year, amt ,False) 
-                
+    
     print "Finished in ",datetime.now() - startTime
     print skipped_lines, "lines are skipped due to malformed data or other_id is not empty"
     print valid_lines, "valid lines that are processed"
