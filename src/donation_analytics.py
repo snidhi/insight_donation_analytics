@@ -18,20 +18,22 @@ def getValues(line):
         recipient = all_values[0]
         donor_name = all_values[7]
         zip_code = all_values[10][:5]
+	date = all_values[13]
         year = all_values[13][-4:]
+	int(date)
 	int(zip_code)
 	int(year)
         amt = int(all_values[14])
         other_id = all_values[15]    
         
-	if recipient != '' and donor_name != '' and amt > 0 and other_id   == '':
+	if recipient != '' and len(date) == 8 and donor_name != '' and len(zip_code) > 4 and amt > 0 and other_id   == '':
             return [recipient, donor_name, zip_code, year, amt]
         else:
             return None
         
     except:
         return None
-
+        
 if __name__ == "__main__":
 
     from datetime import datetime
@@ -61,10 +63,12 @@ if __name__ == "__main__":
 
     #key = string : donor name + | + zip 
     #value = string : First contribution of this donor. Of that contribution: recipient id + zip + year + amt + True/False (processed or not)
+    #maximum size of the hash map can go to as big as the number of unique donors
     repeatedDonor = {}
     
     #key = recipient id + zip + year 
     #value = heap of contributions, sum of contributions, # of contributions
+    #maximum number of keys can go to as high as the number of lines in the input. 
     recipientRecord = {} 
     
     valid_lines = 0	
@@ -107,7 +111,6 @@ if __name__ == "__main__":
 	    # We may not have processed first record of this repeat donor, so lets do that now.
             recipient1 , zip_code1, year1 , amt1, seen = donor_record.split("|")
             if seen == "False": 
-		 # first record of current donor has not been processed 
                  recipient_zip_year1 = recipient1 + "|" + zip_code1 + "|" + year1 
 		 if (recipient_zip_year1 == recipient_zip_year):
 			 # recipient, zip and year corresponding to first record of current repeat donor
@@ -132,7 +135,9 @@ if __name__ == "__main__":
 
                         recipientRecord[recipient_zip_year1] = [heap1,sum_amt1,cnt1 ] #update recipient map for this donor's first entry
 		 repeatedDonor[name_and_zip] = recipient_zip_year1+"|"+amt1+"|"+"True" #change the value to be seen now that its prcoessed 
-                
+        
+		 # first record of current donor has not been processed 
+
             recipientRecord[recipient_zip_year] = [heap,sum_amt,cnt]                                                               
             percentile_p = str(percentile(heap,p,cnt))
             output = recipient_zip_year+"|"+percentile_p+"|"+str(sum_amt)+"|"+str(cnt)+"\n"
