@@ -23,7 +23,7 @@ def getValues(line):
 	int(date)
 	int(zip_code)
 	int(year)
-        amt = int(all_values[14])
+        amt = float(all_values[14])
         other_id = all_values[15]    
         
 	if recipient != '' and len(date) == 8 and donor_name != '' and len(zip_code) > 4 and amt > 0 and other_id   == '':
@@ -138,8 +138,8 @@ if __name__ == "__main__":
 		 # first record of current donor has not been processed 
 
             recipientRecord[recipient_zip_year] = [heap,sum_amt,cnt]                                                               
-            percentile_p = str(percentile(heap,p,cnt))
-            output = recipient + "|" + zip_code +"|" + year+"|"+percentile_p+"|"+str(sum_amt)+"|"+str(cnt)+"\n"
+            percentile_p = str(int(round(percentile(heap,p,cnt))))
+            output = recipient + "|" + zip_code +"|" + year + "|" + percentile_p + "|" + str(int(round(sum_amt)))+"|"+str(cnt)+"\n"
             output_file.write(output)
                 
         else:
