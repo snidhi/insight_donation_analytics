@@ -1,9 +1,9 @@
-Donation-analytics.py is the code to find contributions from repeated donors in that zipcode and year.
+Donation-analytics.py is the code to find contributions from repeated donors in that zipcode and year for a particular recipient.
 
 Logic:
 
 Keep two hashmaps. First hashmap "repeatedDonors" is to track the repeated donors.
-A donor is repeated is the name and zipcode is the same. Keys in the map are: (name, zipcode)
+A donor is repeated if the name and zipcode is the same. Keys in the map are: (name, zipcode)
 
 If a key exists in the map, the donor is a repeated donor.
 
