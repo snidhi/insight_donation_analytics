@@ -87,6 +87,9 @@ if __name__ == "__main__":
 	print "Unable to open output file. Terminating!"
 	sys.exit()
 
+    if p < 1 or p > 100:
+	    print "Percentile value invalid. Terminating!"
+	    sys.exit()
     #key = (donor name , zip) 
     #value = First contribution of this donor. Of that contribution: (recipient id, zip ,year ,amt ,True/False (processed or not))
     #maximum size of the hash map can go to as big as the number of unique donors
